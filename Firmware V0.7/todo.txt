@@ -1,0 +1,25 @@
+Need to implement pulling source code from a central repository and executing it
+
+Functionality:
+    1. Modularize the code (move libraries to lib folder)
+        Change main loop
+    2. Move GSM code to a separate file
+    3. Add GSM Support to send messages to a number via 2G and also connect to a 4G network
+    4. Set up FTP server to pull source code from
+     Implement "instructions" schema that tells which version/hash to pull from the server
+     Implement version/hash/latest hash saving
+
+    . Set up FTP Client 
+    . Create staging area for new source code
+    . Each update should be a file/set of files as specified in update instructions
+
+Security: (not required for v0.7)
+    1. Public, Private Key Pair
+    2. Private key in env variables
+    3. Sends 2 packets, 1 is hashed password, 2nd is URL to pull source code from
+
+Lib Ref:
+https://github.com/SpotlightKid/micropython-ftplib
+https://stackoverflow.com/questions/68443672/how-to-write-tests-for-micropython
+https://forum.micropython.org/viewtopic.php?t=12411
+https://stackoverflow.com/questions/301134/how-can-i-import-a-module-dynamically-given-its-name-as-string

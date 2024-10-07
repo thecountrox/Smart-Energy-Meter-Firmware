@@ -1,0 +1,10 @@
+Things to cover in software update 
+
+power consumption calculation in kwhr (both cumulative and dynamic),
+    - power meter only
+bill calculation with changing tamilnadu tariff rates,  
+    - API Changes
+calculation of Max demand if there are multiple modes, 
+    - API Changes
+updating the software remotely,
+    - power meter + API Changes
