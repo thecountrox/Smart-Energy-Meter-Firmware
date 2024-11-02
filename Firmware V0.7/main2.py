@@ -8,16 +8,10 @@ import ujson as json
 from libs import LCD1602
 from libs.pzem import PZEM
 from libs.picozero import LED
-
-os.chdir("/")
  
 
 uart0 = machine.UART(0, tx=Pin(16), rx=Pin(17), baudrate=115200)   
-
 uart = machine.UART(1,tx=machine.Pin(4),rx=machine.Pin(5), baudrate=9600)
-
-
-
 
 GSM_PWR_KEY = LED(20)
 POWER_ON_OFF_PIN  = LED(21)
@@ -40,6 +34,8 @@ lcdTimer=Timer(-1)
 debounce_time=0
 
 display_index=0
+
+relay_number=None
 
 date_flag = 0
 
@@ -67,7 +63,7 @@ def send_data_as_message(data,uart=uart0):
     # Set the SMS message format to text
     sendCMD_waitResp('AT+CMGF=1\r\n')
     # Send the SMS message
-    sendCMD_waitResp('AT+CMGS="8637643053"\r\n')
+    sendCMD_waitResp(f'AT+CMGS="{relay_number}"\r\n')
     utime.sleep(2)
     sendCMD_waitResp(data)
     utime.sleep(2)
@@ -362,87 +358,97 @@ def getCurrentDate():
     
 
 # MAIN CODE STARTS HERE ----------------------------------------------------------/
-LCD_PWR.on()
-sleep(0.2)
-lcd=LCD1602.LCD1602(16,2)
+
+def main():
+    global uart0, uart, GSM_PWR_KEY, POWER_ON_OFF_PIN, GSM_STATUS_PIN,LCD_PWR,left_button, center_button,right_button,rtc,lcdTimer,debounce_time,display_index,date_flag,power_parameter, relay_number
+
+    with open('config.json', 'r') as f:
+        data = json.load(f)
+
+    relay_number = data['relay_number']
+
+    os.chdir("/")
+
+    LCD_PWR.on()
+    sleep(0.2)
+    lcd=LCD1602.LCD1602(16,2)
 
 
-center_button.irq(trigger=Pin.IRQ_FALLING, handler=center_button_pressed)
+    center_button.irq(trigger=Pin.IRQ_FALLING, handler=center_button_pressed)
 
-turnOffGSM()
-
-
-try:
-    date = readDate()
-    print("Date Found: ")
-    print(int(date))
-    lcd.clear()
-    lcd.setCursor(2, 0)
-    lcd.printout("Setting Up")
-    lcd.setCursor(2, 1)
-    lcd.printout("Please Wait")
-    turnOnGSM()
-    sleep(20)
-    gsmSetup()
-    sleep(10)
-    setDateTime()
-    date = readDate()
     turnOffGSM()
-    print(date)
-    lcd.clear()
-    lcd.setCursor(1, 0)
-    lcd.printout("Setup Complete")
-    sleep(2)
-
-except:
-    print("Date not set")
-    print("Setting Date")
-    lcd.clear()
-    lcd.setCursor(2, 0)
-    lcd.printout("Setting Up")
-    lcd.setCursor(2, 1)
-    lcd.printout("Please Wait")
-    turnOnGSM()
-    sleep(20)
-    gsmSetup()
-    sleep(10)
-    setDateTime()
-    date = readDate()
-    print(date)
-    turnOffGSM()
-    lcd.clear()
-    lcd.setCursor(1, 0)
-    lcd.printout("Setup Complete")
-    sleep(2)
 
 
-changeLCD()
+    try:
+        date = readDate()
+        print("Date Found: ")
+        print(int(date))
+        lcd.clear()
+        lcd.setCursor(2, 0)
+        lcd.printout("Setting Up")
+        lcd.setCursor(2, 1)
+        lcd.printout("Please Wait")
+        turnOnGSM()
+        sleep(20)
+        gsmSetup()
+        sleep(10)
+        setDateTime()
+        date = readDate()
+        turnOffGSM()
+        print(date)
+        lcd.clear()
+        lcd.setCursor(1, 0)
+        lcd.printout("Setup Complete")
+        sleep(2)
 
-while(True):
-    
-    date = readDate()
-    currentdate = getCurrentDate()
-    
-    if(int(currentdate) > int(date)):
-        print("Date Threshold Crossed, Sending Data")
-        try:
-            power_parameter = getting_values()
-            power_parameter = str(power_parameter)
-            power_parameter = power_parameter[1:-1]
-            turnOnGSM()
-            sleep(20)
-            gsmSetup()
-            sleep(5)
-            with open('config.json', 'r') as f:
-                data = json.load(f)
-            send_data_as_message(data["deviceId"] +","+data["password"]+","+currentdate+","+power_parameter)
-            logData(currentdate +" : "+ power_parameter+"\n")
-            setDateTime()
-            turnOffGSM()
-        except:
-            print("No Power")
-    else:
-        print("Date Flag : "+ date)
-        print("Current Date: "+currentdate)
+    except:
+        print("Date not set")
+        print("Setting Date")
+        lcd.clear()
+        lcd.setCursor(2, 0)
+        lcd.printout("Setting Up")
+        lcd.setCursor(2, 1)
+        lcd.printout("Please Wait")
+        turnOnGSM()
+        sleep(20)
+        gsmSetup()
+        sleep(10)
+        setDateTime()
+        date = readDate()
+        print(date)
+        turnOffGSM()
+        lcd.clear()
+        lcd.setCursor(1, 0)
+        lcd.printout("Setup Complete")
+        sleep(2)
 
-    sleep(3)
+
+    changeLCD()
+
+    while(True):    
+        date = readDate()
+        currentdate = getCurrentDate()
+        
+        if(int(currentdate) > int(date)):
+            print("Date Threshold Crossed, Sending Data")
+            try:
+                power_parameter = getting_values()
+                power_parameter = str(power_parameter)
+                power_parameter = power_parameter[1:-1]
+                turnOnGSM()
+                sleep(20)
+                gsmSetup()
+                sleep(5)
+                with open('config.json', 'r') as f:
+                    data = json.load(f)
+                send_data_as_message(data["deviceId"] +","+data["password"]+","+currentdate+","+power_parameter)
+                logData(currentdate +" : "+ power_parameter+"\n")
+                setDateTime()
+                turnOffGSM()
+            except:
+                print("No Power")
+        else:
+            print("Date Flag : "+ date)
+            print("Current Date: "+currentdate)
+
+        sleep(3)

@@ -1,13 +1,13 @@
 from machine import I2C, Pin,Timer,RTC,UART
+from picozero import LED
 from time import sleep,ticks_ms
-
 import utime
 import os
+import LCD1602
 import ujson as json
 
-from libs import LCD1602
-from libs.pzem import PZEM
-from libs.picozero import LED
+
+from pzem import PZEM
 
 os.chdir("/")
  
@@ -183,7 +183,7 @@ def decrementIndex():
 def center_button_pressed(pin):
     global display_index,debounce_time
     if (ticks_ms()-debounce_time) > 1000:
-        if(display_index == 6):
+        if(display_index == 7):
             print("Sending Data")
             lcd.clear()
             lcd.setCursor(0, 0)
@@ -446,3 +446,6 @@ while(True):
         print("Current Date: "+currentdate)
 
     sleep(3)
+        
+        
+

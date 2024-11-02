@@ -23,3 +23,15 @@ https://github.com/SpotlightKid/micropython-ftplib
 https://stackoverflow.com/questions/68443672/how-to-write-tests-for-micropython
 https://forum.micropython.org/viewtopic.php?t=12411
 https://stackoverflow.com/questions/301134/how-can-i-import-a-module-dynamically-given-its-name-as-string
+
+Modularizatio Notes:
+    1. Move files to runner.py (main2)
+    2. Have a main() function in runner.py
+    2. Functionality to change runner.py (poll for updates everyday or so)
+
+
+Testing:
+    1. Reassembly 
+    2. Reconfigure Relay App (temp) with local url
+    3. Test Smart Meter Home App
+    4. Recharge SIMs
