@@ -1,5 +1,5 @@
 # Shantanu look at this
-from machine import I2C, Pin, Timer, RTC, UART, machine
+from machine import I2C, Pin, Timer, RTC, UART
 from time import sleep, ticks_ms
 import utime
 import os
@@ -161,7 +161,7 @@ def lcdOn(LCD_PWR, uart):
 def center_button_pressed(pin, POWER_ON_OFF_PIN, LCD_PWR, GSM_PWR_KEY, uart, rtc, relay_number, lcd):
     global display_index,debounce_time
     if (ticks_ms()-debounce_time) > 1000:
-        if(display_index == 6):
+        if(display_index == 7):
             print("Sending Data")
             lcd.clear()
             lcd.setCursor(0, 0)
