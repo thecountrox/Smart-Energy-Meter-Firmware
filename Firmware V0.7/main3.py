@@ -1,3 +1,4 @@
+# Shantanu look at this
 from machine import I2C, Pin, Timer, RTC, UART
 from time import sleep, ticks_ms
 import utime
@@ -160,7 +161,7 @@ def lcdOn(LCD_PWR, uart):
 def center_button_pressed(pin, POWER_ON_OFF_PIN, LCD_PWR, GSM_PWR_KEY, uart, rtc, relay_number, lcd):
     global display_index,debounce_time
     if (ticks_ms()-debounce_time) > 1000:
-        if(display_index == 6):
+        if(display_index == 7):
             print("Sending Data")
             lcd.clear()
             lcd.setCursor(0, 0)
@@ -311,10 +312,10 @@ def logData(data):
 def getCurrentDate(rtc):
     datetime_list = rtc.datetime()
     return (
-        f"{datetime_list[0]}"
-        f"{datetime_list[1]:02}"
-        f"{datetime_list[2]:02}"
-        f"{datetime_list[4]:02}"
+        f"{datetime_list[0]}",
+        f"{datetime_list[1]:02}",
+        f"{datetime_list[2]:02}",
+        f"{datetime_list[4]:02}",
         f"{datetime_list[5]:02}"
     )
 
@@ -323,13 +324,13 @@ def getCurrentDate(rtc):
 def main():
     global debounce_time
     # Hardware Setup
+    os.chdir("/")
     uart0, uart, GSM_PWR_KEY, POWER_ON_OFF_PIN, LCD_PWR, rtc, lcd = setupHardware()
 
     # Read Configuration
     with open("config.json", "r") as f:
         data = json.load(f)
     relay_number = data["relay_number"]
-    os.chdir("/")
 
     # Setup LCD and Buttons
     LCD_PWR.on()
@@ -408,3 +409,6 @@ def main():
             print(f"Date Flag : {date}")
             print(f"Current Date: {currentdate}")
         sleep(3)
+
+if __name__ == '__main__':
+    main()
