@@ -2,10 +2,10 @@
 import time
 from machine import Pin,I2C
 
-LCD1602_SDA = Pin(4)
-LCD1602_SCL = Pin(5)
+LCD1602_SDA = Pin(2)
+LCD1602_SCL = Pin(3)
 
-LCD1602_I2C = I2C(0,sda = LCD1602_SDA,scl = LCD1602_SCL ,freq = 400000)
+LCD1602_I2C = I2C(1,sda = LCD1602_SDA,scl = LCD1602_SCL ,freq = 400000)
 
 #Device I2C Arress
 LCD_ADDRESS   =  (0x7c>>1)
@@ -72,13 +72,13 @@ class LCD1602:
   def clear(self):
     self.command(LCD_CLEARDISPLAY)
     time.sleep(0.002)
+
   def printout(self,arg):
     if(isinstance(arg,int)):
       arg=str(arg)
 
     for x in bytearray(arg,'utf-8'):
       self.write(x)
-
 
   def display(self):
     self._showcontrol |= LCD_DISPLAYON 
@@ -116,4 +116,5 @@ class LCD1602:
     # set the entry mode
     self.command(LCD_ENTRYMODESET | self._showmode);
     # backlight init
+
 
