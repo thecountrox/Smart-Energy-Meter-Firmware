@@ -80,7 +80,7 @@ def send_data_as_message(data,uart=uart0):
     # Set the SMS message format to text
     sendCMD_waitResp('AT+CMGF=1\r\n')
     # Send the SMS message
-    sendCMD_waitResp('AT+CMGS="7200382080"\r\n')
+    sendCMD_waitResp('AT+CMGS="NUMBERGOESHERE"\r\n')
     utime.sleep(2)
     sendCMD_waitResp(data)
     utime.sleep(2)
