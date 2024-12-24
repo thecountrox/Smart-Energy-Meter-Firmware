@@ -97,6 +97,7 @@ def waitResp_Valid(expected_response, uart=uart0, timeout=6000):
     return None
 
 def send_data_as_message(message, uart=uart0):
+    sendCMD_waitResp('AT+CGATT=1\r\n')
     # Set the SMS message format to text
     sendCMD_waitResp('AT+CMGF=1\r\n')
     
@@ -140,6 +141,44 @@ def turnOffGSM():
     utime.sleep(2)
     POWER_ON_OFF_PIN.on()
     
+def add_4_hours(rtc_datetime):
+    year, month, day, weekday, hour, minute, second, subsecond = rtc_datetime
+
+    # Add 4 hours
+    hour += 4
+    if hour >= 24:  # Handle day rollover
+        hour -= 24
+        day += 1
+    
+        # Handle month and year rollover
+        if day > days_in_month(year, month):
+            day = 1
+            month += 1
+            if month > 12:  # Handle year rollover
+                month = 1
+                year += 1
+
+    # Format the components
+    month_str = f"{month:02d}"
+    day_str = f"{day:02d}"
+    hour_str = f"{hour:02d}"
+    minute_str = "00"
+    second_str = "00"
+
+    # Combine into the desired format
+    return f"{year}{month_str}{day_str}{hour_str}{minute_str}{second_str}"
+
+
+def days_in_month(year, month):
+    """
+    Return the number of days in the given month of the year.
+    Accounts for leap years in February.
+    """
+    if month == 2:  # February
+        return 29 if (year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)) else 28
+    if month in {4, 6, 9, 11}:  # April, June, September, November
+        return 30
+    return 31  # All other months
 
 def setDateTime():
     # send a serial command to get date from GSM Module
@@ -155,30 +194,31 @@ def setDateTime():
     datetime_list = rtc.datetime()
     
     # Setting the date flag for the next day
-    month = datetime_list[1]
-    day = datetime_list[2] +1
-    
-    if(month<10):
-        month = "0"+str(month)
-    else:
-        month = str(month)
-    
-    if(day<10):
-        day = "0"+str(day)
-    else:
-        day = str(day)
-          
-    date_flag = str(datetime_list[0])+month+day+"00"+"00"
+    date_flag = add_4_hours(datetime_list)
     
     
     saveDate(date_flag)
 
+def pdp_state(flag):
+    if flag==1:
+        print('enabling pdp')
+        print(sendCMD_waitResp('AT+CGACT=1,1\r\n'))
+    elif flag==0:
+        print('disabling pdp')
+        print(sendCMD_waitResp('AT+CGATT=0\r\n'))
+
 def gsmSetup():
     print(sendCMD_waitResp('ATE0\r\n'))
+    utime.sleep(5)
+    pdp_state(0)
+    utime.sleep(5)
+    pdp_state(1)
     utime.sleep(5)
     print(sendCMD_waitResp('AT+CNTP="14.139.60.106",22\r\n'))
     utime.sleep(5)
     print(sendCMD_waitResp('AT+CNTP\r\n'))
+    utime.sleep(5)
+    pdp_state(0)
     
     
 # PZEM-004T POWER ANALYSER FUNCTIONS---------------------------------------------------/
