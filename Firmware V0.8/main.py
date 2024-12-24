@@ -46,7 +46,7 @@ def update():
         elif int(new) == int(current):
             print('downloaded file is same version')
             os.remove('UPDATE_smartmeter.py')
-        machine.reset()
+    machine.reset()
 
 def getcode(filename,offset=2):
     with open(filename, 'r') as file:

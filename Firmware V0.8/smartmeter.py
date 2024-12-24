@@ -64,9 +64,12 @@ def sendCMD_waitResp(cmd, uart=uart0, timeout=2000):
     print("CMD: " + cmd)
     uart.write(cmd)
     return waitResp(uart, timeout)
+
+def sendCMD(cmd,uart=uart0, timeout=2000):
+    print("CMD: " + cmd)
+    uart.write(cmd)
     
-    
-def waitResp(uart=uart0, timeout=2000):
+def waitResp(uart=uart0, timeout=6000):
     prvMills = utime.ticks_ms()
     resp = b""
     while (utime.ticks_ms()-prvMills)<timeout:
@@ -76,16 +79,52 @@ def waitResp(uart=uart0, timeout=2000):
                 ret_str = resp.decode()
                 return(ret_str)
 
-def send_data_as_message(data,uart=uart0):
+
+def waitResp_Valid(expected_response, uart=uart0, timeout=6000):
+    start_time = utime.ticks_ms()
+    resp = b""
+
+    while (utime.ticks_ms() - start_time) < timeout:
+        if uart.any():
+            resp += uart.read()
+            # Decode and check for the expected response
+            decoded_resp = resp.decode('utf-8', 'ignore')
+            if expected_response in decoded_resp:
+                return decoded_resp
+
+    # Return None if the response wasn't received within the timeout
+    print(f"Timed out waiting for: {expected_response}")
+    return None
+
+def send_data_as_message(message, uart=uart0):
     # Set the SMS message format to text
     sendCMD_waitResp('AT+CMGF=1\r\n')
+    
+    # Load phone number from config.json
+    try:
+        with open('config.json', 'rt') as f:
+            data1 = json.load(f)
+            phone = str(data1['phoneNumber']).strip()  # Convert to string and strip whitespace
+    except Exception as e:
+        print(f"Error loading phone number: {e}")
+        return
+
+    # Validate phone number format
+    if not phone.isdigit() and not (phone.startswith('+') and phone[1:].isdigit()):
+        print(f"Invalid phone number format: '{phone}'")
+        return
+
+    # Debug phone number
+    print(f"Sending SMS to: {phone}")
+
     # Send the SMS message
-    sendCMD_waitResp('AT+CMGS="NUMBERGOESHERE"\r\n')
-    utime.sleep(2)
-    sendCMD_waitResp(data)
-    utime.sleep(2)
-    sendCMD_waitResp(chr(26))
-    print("message sent")
+    response = sendCMD(f'AT+CMGS="{phone}"\r\n')
+    waitResp_Valid('>')
+    sendCMD_waitResp(message)  # Send the message
+    sendCMD_waitResp(chr(26))  # Send Ctrl+Z to finish
+    print("Message sent.")
+    
+
 
 def turnOnGSM():
     POWER_ON_OFF_PIN.on()
@@ -103,7 +142,7 @@ def turnOffGSM():
     
 
 def setDateTime():
-    #send a serial command to get date from GSM Module
+    # send a serial command to get date from GSM Module
     input_datatime = sendCMD_waitResp('AT+CCLK?\r\n')#Feed the output of the buffer here
     datetime = input_datatime.split('"')
     input_datatime = sendCMD_waitResp('AT+CCLK?\r\n')#Feed the output of the buffer here
@@ -137,7 +176,7 @@ def setDateTime():
 def gsmSetup():
     print(sendCMD_waitResp('ATE0\r\n'))
     utime.sleep(5)
-    print(sendCMD_waitResp('AT+CNTP="14.139.60.107",22\r\n'))
+    print(sendCMD_waitResp('AT+CNTP="14.139.60.106",22\r\n'))
     utime.sleep(5)
     print(sendCMD_waitResp('AT+CNTP\r\n'))
     
@@ -463,7 +502,7 @@ while(True):
             file.close()
         updateflag = int(data["hasUpdated"])
         print('update flag is',updateflag)
-        if updateflag==0:
+        if int(currentdate[6:8])%7==0 and updateflag==0:
             cleanup_resources()
             raise NewUpdateTime('update time has come')
         elif int(currentdate[6:8])%7!=0:
