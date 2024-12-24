@@ -3,6 +3,7 @@ from machine import UART,Pin
 from picozero import LED
 import time
 import re
+import ujson as json
 
 # init uart
 uart = machine.UART(0, tx=Pin(16), rx=Pin(17), baudrate=115200)
@@ -65,7 +66,7 @@ def send_request(url):
     send_command('AT+HTTPINIT')
     send_raw(f'AT+HTTPPARA="URL","{url}"'.encode(),5)
     response = send_command('AT+HTTPACTION=0',5)
-    time.sleep(2)
+    time.sleep(10)
     print('response: ',response.decode('utf-8', 'ignore'))
     data = get_content(getsize(response))
     return data
