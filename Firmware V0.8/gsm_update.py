@@ -28,7 +28,6 @@ def turnOffGSM():
     time.sleep(2)
     POWER_ON_OFF_PIN.on()
 
-
 # send cmds to gms and read with delay 
 def send_command(cmd, delay=2):
     uart.write(cmd.encode('utf-8') + b'\r\n')
@@ -66,6 +65,7 @@ def send_request(url):
     send_command('AT+HTTPINIT')
     send_raw(f'AT+HTTPPARA="URL","{url}"'.encode(),5)
     response = send_command('AT+HTTPACTION=0',5)
+    print('sending request')
     time.sleep(10)
     print('response: ',response.decode('utf-8', 'ignore'))
     data = get_content(getsize(response))
