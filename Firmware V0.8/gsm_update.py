@@ -14,6 +14,7 @@ POWER_ON_OFF_PIN  = LED(21)
 
 # turn on gsm
 def turnOnGSM():
+    print('Turning on GSM')
     POWER_ON_OFF_PIN.on()
     time.sleep(0.5)
     POWER_ON_OFF_PIN.off()
@@ -24,6 +25,7 @@ def turnOnGSM():
 
 # turn off gsm
 def turnOffGSM():
+    print('Turning OFF GSM')
     POWER_ON_OFF_PIN.off()
     time.sleep(2)
     POWER_ON_OFF_PIN.on()
@@ -43,6 +45,7 @@ def send_raw(cmd, delay=1):
 def initGsm():
     # tell gsm module to not talk back to its creator
     # print (send_command('ATE0'))
+    print('Initializing GSM')
     print(send_command('AT+CMEE=2'))
     time.sleep(2)
     print(send_command('AT'))
@@ -82,7 +85,11 @@ def getsize(response):
         return size
     else:
         print("No 200 response found.")
-        return 0
+        if retry <=3:
+            retry+=1
+            send_request_save_file(url,'UPDATE_smartmeter.py')
+        else:
+            return 0
 
 def get_content(total_size, chunk_size=200):
     # Read the HTTP response in chunks and clean the data.
@@ -152,16 +159,19 @@ def cleanup_resources():
     time.sleep(5)
     print("Resources cleaned up.")
 
-
+print('Begin Update Procedure')
+turnOffGSM()
+time.sleep(5)
 turnOnGSM()
 time.sleep(5)
 initGsm()
-# activate pdp context
 pdp_state(0)
+# activate pdp context
 pdp_state(1)
 with open('config.json', 'rt') as f:
     data = json.load(f)
     url = data['updateUrl']
+retry=0
 send_request_save_file(url,'UPDATE_smartmeter.py')
 pdp_state(0)
 turnOffGSM()
